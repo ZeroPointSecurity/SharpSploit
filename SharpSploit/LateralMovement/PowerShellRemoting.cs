@@ -24,7 +24,7 @@ namespace SharpSploit.LateralMovement
         /// <param name="Password">Password for explicit credentials.</param>
         /// <returns>String. Returns the result of the PowerShell command.</returns>
         /// <author>Daniel Duggan (@_RastaMouse)</author>
-        public static string InvokeCommand(string ComputerName, string PowerShellCode, bool OutString = true, string Domain = "", string Username = "", string Password = "")
+        public static string InvokeCommand(string ComputerName, string PowerShellCode, string Domain = "", string Username = "", string Password = "", bool OutString = true)
         {
             string output;
             WSManConnectionInfo connectionInfo;

@@ -14,14 +14,14 @@ namespace SharpSploit.Tests.LateralMovement
         [TestMethod]
         public void TestInvokeCommand()
         {
-            var result = PowerShellRemoting.InvokeCommand("dc1", "whoami; hostname");
+            var result = PowerShellRemoting.InvokeCommand("dc", "whoami; hostname");
             Assert.IsTrue(!string.IsNullOrEmpty(result));
         }
 
         [TestMethod]
         public void TestInvokeCommandWCredentials()
         {
-            var result = PowerShellRemoting.InvokeCommand("dc1", "whoami; hostname", "DEV", "rasta", "Passw0rd!");
+            var result = PowerShellRemoting.InvokeCommand("dc", "whoami; hostname", "DEV", "Administrator", "Passw0rd!");
             Assert.IsTrue(!string.IsNullOrEmpty(result));
         }
     }
