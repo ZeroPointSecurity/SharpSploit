@@ -1110,7 +1110,7 @@
         </member>
         <member name="T:SharpSploit.Evasion.ETW">
             <summary>
-            ETW is a class for manipulating the Event Tracing for Windows (ETW).
+            ETW is a class for manipulating Event Tracing for Windows (ETW).
             </summary>
         </member>
         <!-- Badly formed XML comment ignored for member "M:SharpSploit.Evasion.ETW.PatchETWEventWrite" -->
@@ -2111,23 +2111,22 @@
         </member>
         <member name="T:SharpSploit.LateralMovement.PowerShellRemoting">
             <summary>
-            PowerShellRemoting is a class for executing PowerShell commands remotely.
+            PowerShellRemoting is a class for creating PowerShell runspaces on a remote computer
+            and executing the specified command.
             </summary>
         </member>
-        <member name="M:SharpSploit.LateralMovement.PowerShellRemoting.InvokeCommand(System.String,System.String,System.String,System.String,System.String)">
+        <member name="M:SharpSploit.LateralMovement.PowerShellRemoting.InvokeCommand(System.String,System.String,System.Boolean,System.String,System.String,System.String)">
             <summary>
             Invoke a PowerShell command on a remote machine.
             </summary>
             <param name="ComputerName">ComputerName of remote system to execute process.</param>
-            <param name="Command">Command to execute on remote system.</param>
+            <param name="PowerShellCode">Command to execute on remote system.</param>
+            <param name="OutString">Switch. If true, appends Out-String to the PowerShellCode to execute.</param>
             <param name="Domain">Domain for explicit credentials.</param>
             <param name="Username">Username for explicit credentials.</param>
             <param name="Password">Password for explicit credentials.</param>
-            <returns>String. Results of the PowerShell command.</returns>
+            <returns>String. Returns the result of the PowerShell command.</returns>
             <author>Daniel Duggan (@_RastaMouse)</author>
-            <remarks>
-            The function won't return as long as the command is still running on the remote target.
-            </remarks>
         </member>
         <member name="T:SharpSploit.LateralMovement.SCM">
             <summary>
@@ -2218,13 +2217,13 @@
             <returns>IntPtr. Returns a handle to the SCM.</returns>
             <author>Daniel Duggan (@_RastaMouse)</author>
         </member>
-        <member name="M:SharpSploit.LateralMovement.PassTheHash.SMBAdminCheckWithHash(System.String,System.String,System.String,System.String)">
+        <member name="M:SharpSploit.LateralMovement.PassTheHash.AdminCheck(System.String,System.String,System.String,System.String)">
             <summary>
             Determines if a username and hash has administrative privilege on a Target
             </summary>
-            <param name="username">The Username to query.</param>
-            <param name="hash">The NTLM hash for the user</param>
-            <param name="domain">The logon domain for the user</param>
+            <param name="Username">The Username to query.</param>
+            <param name="Hash">The NTLM hash for the user</param>
+            <param name="Domain">The logon domain for the user</param>
             <param name="Target">The Target to query.</param>
             <returns>True for Admin, False for not.</returns>
             <author>Scottie Austin (@checkymander)</author>
@@ -2233,21 +2232,21 @@
             at https://github.com/Kevin-Robertson/Invoke-TheHash)
             </remarks>
         </member>
-        <member name="M:SharpSploit.LateralMovement.PassTheHash.SMBExecuteWithHash(System.String,System.String,System.String,System.Collections.Generic.List{System.String},System.String,System.Int32,System.String,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+        <member name="M:SharpSploit.LateralMovement.PassTheHash.SMBExecute(System.String,System.String,System.String,System.Collections.Generic.List{System.String},System.String,System.Int32,System.String,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
             <summary>
             Execute a command against multiple targets using Pass the Hash and SMB
             </summary>
-            <param name="username">The username to log on as.</param>
-            <param name="hash">The NTLM hash for the user.</param>
-            <param name="domain">The logon domain for the user.</param>
-            <param name="targets">The Target computers to run the command on.</param>
-            <param name="command">The Command to execute on the Target</param>
-            <param name="sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
+            <param name="Username">The username to log on as.</param>
+            <param name="Hash">The NTLM hash for the user.</param>
+            <param name="Domain">The logon domain for the user.</param>
+            <param name="Targets">The Target computers to run the command on.</param>
+            <param name="Command">The Command to execute on the Target</param>
+            <param name="Sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
             <param name="ServiceName">The name to give the SMB service for execution.</param>
             <param name="AdminCheck">Check only if user is Admin on targets.</param>
             <param name="ComSpec">Append %COMSPEC% /C to command. (default=true)</param>
             <param name="ForceSMB1">Force usage of SMBv1.</param>
-            <param name="debug">Include debug information in the output.</param>
+            <param name="Debug">Include debug information in the output.</param>
             <returns>Returns a string containing execution results.</returns>
             <author>Scottie Austin (@checkymander)</author>
             <remarks>
@@ -2255,21 +2254,21 @@
             at https://github.com/Kevin-Robertson/Invoke-TheHash)
             </remarks>
         </member>
-        <member name="M:SharpSploit.LateralMovement.PassTheHash.SMBExecuteWithHash(System.String,System.String,System.String,System.String,System.String,System.Int32,System.String,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+        <member name="M:SharpSploit.LateralMovement.PassTheHash.SMBExecute(System.String,System.String,System.String,System.String,System.String,System.Int32,System.String,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
             <summary>
             Execute a command against multiple targets using Pass the Hash and SMB
             </summary>
-            <param name="username">The username to log on as.</param>
-            <param name="hash">The NTLM hash for the user.</param>
-            <param name="domain">The logon domain for the user.</param>
+            <param name="Username">The username to log on as.</param>
+            <param name="Hash">The NTLM hash for the user.</param>
+            <param name="Domain">The logon domain for the user.</param>
             <param name="Target">The Target computer to run the command on.</param>
-            <param name="command">The Command to execute on the Target</param>
-            <param name="sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
+            <param name="Command">The Command to execute on the Target</param>
+            <param name="Sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
             <param name="ServiceName">The name to give the SMB service for execution.</param>
             <param name="AdminCheck">Check only if user is Admin on targets.</param>
             <param name="ComSpec">Append %COMSPEC% /C to command. (default=true)</param>
             <param name="ForceSMB1">Force usage of SMBv1.</param>
-            <param name="debug">Include debug information in the output.</param>
+            <param name="Debug">Include debug information in the output.</param>
             <returns>Returns a string containing execution results.</returns>
             <author>Scottie Austin (@checkymander)</author>
             <remarks>
@@ -2302,13 +2301,13 @@
             <param name="Password">Password to authenticate the user.</param>
             <returns>Bool. True if execution succeeds, false otherwise.</returns>
         </member>
-        <member name="M:SharpSploit.LateralMovement.WMI.WMIAdminCheckWithHash(System.String,System.String,System.String,System.String)">
+        <member name="M:SharpSploit.LateralMovement.WMI.WMIAdminCheck(System.String,System.String,System.String,System.String)">
             <summary>
             Determines if a username and hash has administrative privilege on a Target
             </summary>
-            <param name="username">The Username to query.</param>
-            <param name="hash">The NTLM hash for the user</param>
-            <param name="domain">The logon domain for the user</param>
+            <param name="Username">The Username to query.</param>
+            <param name="Hash">The NTLM hash for the user</param>
+            <param name="Domain">The logon domain for the user</param>
             <param name="Target">The Target to query.</param>
             <returns>True for Admin, False for not.</returns>
             <author>Scottie Austin (@checkymander)</author>
@@ -2317,18 +2316,18 @@
             at https://github.com/Kevin-Robertson/Invoke-TheHash)
             </remarks>
         </member>
-        <member name="M:SharpSploit.LateralMovement.WMI.WMIExecuteWithHash(System.String,System.String,System.String,System.Collections.Generic.List{System.String},System.String,System.Int32,System.Boolean,System.Boolean)">
+        <member name="M:SharpSploit.LateralMovement.WMI.WMIExecute(System.String,System.String,System.String,System.Collections.Generic.List{System.String},System.String,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Execute a command against multiple targets using Pass the Hash and WMI
             </summary>
-            <param name="username">The username to log on as.</param>
-            <param name="hash">The NTLM hash for the user.</param>
-            <param name="domain">The logon domain for the user.</param>
-            <param name="targets">The Target computers to run the command on.</param>
-            <param name="command">The Command to execute on the Target</param>
-            <param name="sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
+            <param name="Username">The username to log on as.</param>
+            <param name="Hash">The NTLM hash for the user.</param>
+            <param name="Domain">The logon domain for the user.</param>
+            <param name="Targets">The Target computers to run the command on.</param>
+            <param name="Command">The Command to execute on the Target</param>
+            <param name="Sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
             <param name="AdminCheck">Check if user is an Admin on the Target only.</param>
-            <param name="debug">Include debug information in the output</param>
+            <param name="Debug">Include debug information in the output</param>
             <returns>Returns a string containing execution results.</returns>
             <author>Scottie Austin (@checkymander)</author>
             <remarks>
@@ -2336,18 +2335,18 @@
             at https://github.com/Kevin-Robertson/Invoke-TheHash)
             </remarks>
         </member>
-        <member name="M:SharpSploit.LateralMovement.WMI.WMIExecuteWithHash(System.String,System.String,System.String,System.String,System.String,System.Int32,System.Boolean,System.Boolean)">
+        <member name="M:SharpSploit.LateralMovement.WMI.WMIExecute(System.String,System.String,System.String,System.String,System.String,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Execute a command against a Target using Pass the Hash and WMI
             </summary>
-            <param name="username">The username to log on as.</param>
-            <param name="hash">The NTLM hash for the user.</param>
-            <param name="domain">The logon domain for the user.</param>
+            <param name="Username">The username to log on as.</param>
+            <param name="Hash">The NTLM hash for the user.</param>
+            <param name="Domain">The logon domain for the user.</param>
             <param name="Target">The Target computers to run the command on.</param>
-            <param name="command">The Command to execute on the Target.</param>
-            <param name="sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
+            <param name="Command">The Command to execute on the Target.</param>
+            <param name="Sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
             <param name="AdminCheck">Check if user is an Admin on the Target only.</param>
-            <param name="debug">Include debug information in the output.</param>
+            <param name="Debug">Include debug information in the output.</param>
             <returns>Returns a string containing execution results.</returns>
             <author>Scottie Austin (@checkymander)</author>
             <remarks>

